@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hawaiian Friday Rush - TKI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial Black', Arial, sans-serif;
+            background: linear-gradient(135deg, #e74141 0%, #2abcec 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        #gameContainer {
+            width: 95%;
+            max-width: 800px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        #header {
+            background: #e74141;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 28px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        #gameArea {
+            height: 500px;
+            position: relative;
+            background: #f4f4f4;
+            overflow: hidden;
+        }
+
+        #startScreen, #gameOverScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            z-index: 100;
+        }
+
+        #resultScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 90;
+        }
+
+        #resultScreen.success {
+            background: #2abcec;
+            animation: successPulse 0.5s ease-out;
+        }
+
+        #resultScreen.fail {
+            background: #e74141;
+            animation: failShake 0.5s ease-out;
+        }
+
+        #speedUpScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 95;
+            background: linear-gradient(45deg, #e74141, #2abcec, #e74141, #2abcec);
+            background-size: 400% 400%;
+            animation: gradientShift 1s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        #speedUpText {
+            font-size: 80px;
+            color: white;
+            text-shadow: 5px 5px 10px rgba(0,0,0,0.8);
+            animation: speedUpPulse 0.5s ease-in-out infinite;
+        }
+
+        @keyframes speedUpPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        @keyframes successPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes failShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        #resultText {
+            font-size: 72px;
+            color: white;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+            animation: resultPop 0.3s ease-out;
+        }
+
+        @keyframes resultPop {
+            0% { transform: scale(0); }
+            70% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        #resultStats {
+            font-size: 32px;
+            color: white;
+            text-align: center;
+        }
+
+        .btn {
+            background: #e74141;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn:hover {
+            background: #2abcec;
+            transform: scale(1.05);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        #gameTitle {
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        #instructions {
+            font-size: 18px;
+            margin-bottom: 30px;
+            text-align: center;
+            max-width: 600px;
+        }
+
+        #hud {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 50;
+        }
+
+        .hudItem {
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        #minigameTitle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            color: #e74141;
+            text-shadow: 3px 3px 0 #2abcec;
+            z-index: 40;
+            text-align: center;
+            animation: pulse 0.5s ease-in-out;
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
+        }
+
+        #minigameInstruction {
+            position: absolute;
+            top: 70%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            color: white;
+            background: rgba(0,0,0,0.8);
+            padding: 15px 30px;
+            border-radius: 10px;
+            z-index: 40;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        #canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #leaderboardBtn {
+            background: #2abcec;
+            font-size: 16px;
+            padding: 10px 20px;
+        }
+
+        #leaderboard {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .leaderboardEntry {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+
+        .leaderboardEntry.currentPlayer {
+            background: rgba(231, 65, 65, 0.5);
+            border: 2px solid #e74141;
+        }
+
+        #nameInput {
+            padding: 10px;
+            font-size: 18px;
+            border-radius: 5px;
+            border: 2px solid #e74141;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        #muteBtn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 20px;
+            z-index: 60;
+        }
+
+        @media (max-width: 600px) {
+            #gameTitle { font-size: 32px; }
+            #instructions { font-size: 16px; }
+            #minigameTitle { font-size: 32px; }
+            #minigameInstruction { font-size: 18px; }
+            #resultText { font-size: 48px; }
+            #resultStats { font-size: 24px; }
+            #speedUpText { font-size: 50px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="header">🍺 HAWAIIAN FRIDAY RUSH 🌺</div>
+        <button id="muteBtn" onclick="toggleMute()">🔊</button>
+        <div id="gameArea">
+            <canvas id="canvas"></canvas>
+            
+            <div id="hud" style="display: none;">
+                <div class="hudItem">Score: <span id="score">0</span></div>
+                <div class="hudItem">Lives: <span id="lives">3</span></div>
+            </div>
+
+            <div id="minigameTitle" style="display: none;"></div>
+            <div id="minigameInstruction" style="display: none;"></div>
+
+            <div id="resultScreen">
+                <div id="resultText"></div>
+                <div id="resultStats"></div>
+            </div>
+
+            <div id="speedUpScreen">
+                <div id="speedUpText">⚡ SPEED UP! ⚡</div>
+            </div>
+
+            <div id="startScreen">
+                <div id="gameTitle">🍺 HAWAIIAN FRIDAY RUSH 🌺</div>
+                <div id="instructions">
+                    Survive Hawaiian Friday challenges! Complete rapid-fire minigames including Beer Pong, Perfect Pour, the Walk Home, Tigerland adventures, and more. Tap/Click to play!
+                </div>
+                <button class="btn" onclick="startGame()">START GAME</button>
+                <button class="btn" id="leaderboardBtn" onclick="showLeaderboard()">LEADERBOARD</button>
+            </div>
+
+            <div id="gameOverScreen" style="display: none;">
+                <div style="font-size: 48px; margin-bottom: 20px;">GAME OVER!</div>
+                <div style="font-size: 32px; margin-bottom: 10px;">Final Score: <span id="finalScore">0</span></div>
+                <input type="text" id="nameInput" placeholder="Enter Your Name" maxlength="20">
+                <button class="btn" onclick="submitScore()">SUBMIT SCORE</button>
+                <div id="leaderboard"></div>
+                <button class="btn" onclick="location.reload()">PLAY AGAIN</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let gameState = 'menu';
+        let score = 0;
+        let lives = 3;
+        let currentMinigame = null;
+        let minigameTimer = 0;
+        let difficulty = 1;
+        let gameSpeed = 1;
+        let lastTime = 0;
+        let gameStarted = false;
+        let roundsCompleted = 0;
+
+        // Audio Context
+        let audioContext;
+        let musicGain;
+        let isMuted = false;
+        let currentNote = 0;
+        let musicInterval;
+
+        function initAudio() {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            musicGain = audioContext.createGain();
+            musicGain.connect(audioContext.destination);
+            musicGain.gain.value = 0.3;
+        }
+
+        function playNote(frequency, duration, type = 'square') {
+            if (isMuted || !audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(musicGain);
+            
+            oscillator.type = type;
+            oscillator.frequency.value = frequency;
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        function startMusic() {
+            if (isMuted || !audioContext) return;
+            
+            const melody = [
+                { freq: 523.25, dur: 0.2 }, // C5
+                { freq: 659.25, dur: 0.2 }, // E5
+                { freq: 783.99, dur: 0.2 }, // G5
+                { freq: 659.25, dur: 0.2 }, // E5
+                { freq: 698.46, dur: 0.2 }, // F5
+                { freq: 783.99, dur: 0.2 }, // G5
+                { freq: 880.00, dur: 0.2 }, // A5
+                { freq: 783.99, dur: 0.2 }, // G5
+            ];
+            
+            currentNote = 0;
+            
+            if (musicInterval) clearInterval(musicInterval);
+            
+            musicInterval = setInterval(() => {
+                if (!isMuted && gameState === 'playing') {
+                    playNote(melody[currentNote].freq, melody[currentNote].dur, 'square');
+                    currentNote = (currentNote + 1) % melody.length;
+                }
+            }, 200);
+        }
+
+        function stopMusic() {
+            if (musicInterval) {
+                clearInterval(musicInterval);
+                musicInterval = null;
+            }
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            document.getElementById('muteBtn').textContent = isMuted ? '🔇' : '🔊';
+            if (isMuted) {
+                stopMusic();
+            } else if (gameState === 'playing') {
+                startMusic();
+            }
+        }
+
+        function playSuccessSound() {
+            if (isMuted || !audioContext) return;
+            playNote(880, 0.1, 'sine');
+            setTimeout(() => playNote(1046.5, 0.15, 'sine'), 100);
+        }
+
+        function playFailSound() {
+            if (isMuted || !audioContext) return;
+            playNote(200, 0.3, 'sawtooth');
+        }
+
+        // Resize canvas
+        function resizeCanvas() {
+            const container = document.getElementById('gameArea');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Minigame definitions
+        const minigames = [
+            {
+                name: "BEER PONG",
+                instruction: "TAP TO SHOOT AT THE CUP!",
+                duration: 7000,
+                init: function() {
+                    this.ballY = canvas.height - 100;
+                    this.ballX = canvas.width / 2;
+                    this.targetY = 80;
+                    this.targetX = canvas.width / 2;
+                    this.ballVelX = 0;
+                    this.ballVelY = 0;
+                    this.thrown = false;
+                    this.arc = 0;
+                },
+                update: function(dt) {
+                    if (this.thrown) {
+                        this.ballX += this.ballVelX * dt;
+                        this.ballY += this.ballVelY * dt;
+                        this.ballVelY += 500 * dt; // gravity
+                        
+                        const dist = Math.hypot(this.ballX - this.targetX, this.ballY - this.targetY);
+                        if (dist < 35 && this.ballVelY > 0) {
+                            return 'success';
+                        }
+                        if (this.ballY > canvas.height) return 'fail';
+                    } else {
+                        // Show arc preview
+                        this.arc = Math.sin(Date.now() / 300) * 0.3 + 0.5;
+                    }
+                },
+                render: function() {
+                    ctx.fillStyle = '#1a1a1a';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Table
+                    ctx.fillStyle = '#2abcec';
+                    ctx.fillRect(0, 50, canvas.width, 100);
+                    
+                    // Cup
+                    ctx.fillStyle = '#e74141';
+                    ctx.beginPath();
+                    ctx.moveTo(this.targetX - 30, this.targetY + 30);
+                    ctx.lineTo(this.targetX - 20, this.targetY - 20);
+                    ctx.lineTo(this.targetX + 20, this.targetY - 20);
+                    ctx.lineTo(this.targetX + 30, this.targetY + 30);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Show arc preview
+                    if (!this.thrown) {
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                        ctx.lineWidth = 2;
+                        ctx.setLineDash([5, 5]);
+                        ctx.beginPath();
+                        ctx.moveTo(this.ballX, this.ballY);
+                        
+                        // Simulate arc
+                        const power = this.arc;
+                        let simX = this.ballX;
+                        let simY = this.ballY;
+                        let simVelX = 0;
+                        let simVelY = -power * 600 - 200;
+                        
+                        for (let i = 0; i < 30; i++) {
+                            simX += simVelX * 0.05;
+                            simY += simVelY * 0.05;
+                            simVelY += 500 * 0.05;
+                            ctx.lineTo(simX, simY);
+                            if (simY > canvas.height) break;
+                        }
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                        
+                        // Power indicator
+                        ctx.fillStyle = '#2abcec';
+                        ctx.fillRect(20, canvas.height - 40, power * 200, 20);
+                        ctx.strokeStyle = 'white';
+                        ctx.strokeRect(20, canvas.height - 40, 200, 20);
+                    }
+                    
+                    // Ball
+                    ctx.fillStyle = 'white';
+                    ctx.beginPath();
+                    ctx.arc(this.ballX, this.ballY, 12, 0, Math.PI * 2);
+                    ctx.fill();
+                },
+                input: function() {
+                    if (!this.thrown) {
+                        this.thrown = true;
+                        const power = this.arc;
+                        this.ballVelX = 0;
+                        this.ballVelY = -power * 600 - 200;
+                    }
+                }
+            },
+            {
+                name: "PERFECT POUR",
+                instruction: "TAP TO STOP AT THE LINE!",
+                duration: 6000,
+                init: function() {
+                    this.fillLevel = 0;
+                    this.targetLevel = 0.75;
+                    this.tolerance = 0.08;
+                    this.pouring = true;
+                    this.pourSpeed = 0.3 * gameSpeed;
+                    this.foamLevel = 0;
+                    this.done = false;
+                },
+                update: function(dt) {
+                    if (this.pouring && !this.done) {
+                        this.fillLevel += this.pourSpeed * dt;
+                        this.foamLevel = Math.min(this.fillLevel * 0.15, 0.12);
+                        
+                        // Auto-fail if overflow
+                        if (this.fillLevel + this.foamLevel > 1.0) {
+                            return 'fail';
+                        }
+                    }
+                },
+                render: function() {
+                    ctx.fillStyle = '#f4f4f4';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    const glassX = canvas.width / 2;
+                    const glassY = canvas.height / 2 + 50;
+                    const glassWidth = 150;
+                    const glassHeight = 250;
+                    
+                    // Glass outline
+                    ctx.strokeStyle = '#333';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.moveTo(glassX - glassWidth/2, glassY + glassHeight/2);
+                    ctx.lineTo(glassX - glassWidth/2 + 20, glassY - glassHeight/2);
+                    ctx.lineTo(glassX + glassWidth/2 - 20, glassY - glassHeight/2);
+                    ctx.lineTo(glassX + glassWidth/2, glassY + glassHeight/2);
+                    ctx.closePath();
+                    ctx.stroke();
+                    
+                    // Target line
+                    const targetY = glassY + glassHeight/2 - (glassHeight * this.targetLevel);
+                    ctx.strokeStyle = '#2abcec';
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.moveTo(glassX - glassWidth/2, targetY);
+                    ctx.lineTo(glassX + glassWidth/2, targetY);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    
+                    // Tolerance zone
+                    ctx.fillStyle = 'rgba(42, 188, 236, 0.2)';
+                    const tolPixels = glassHeight * this.tolerance;
+                    ctx.fillRect(glassX - glassWidth/2, targetY - tolPixels, glassWidth, tolPixels * 2);
+                    
+                    // Beer fill
+                    if (this.fillLevel > 0) {
+                        const fillHeight = glassHeight * this.fillLevel;
+                        ctx.fillStyle = '#ffc107';
+                        ctx.beginPath();
+                        ctx.moveTo(glassX - glassWidth/2, glassY + glassHeight/2);
+                        ctx.lineTo(glassX - glassWidth/2 + (20 * this.fillLevel), glassY + glassHeight/2 - fillHeight);
+                        ctx.lineTo(glassX + glassWidth/2 - (20 * this.fillLevel), glassY + glassHeight/2 - fillHeight);
+                        ctx.lineTo(glassX + glassWidth/2, glassY + glassHeight/2);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                    
+                    // Foam
+                    if (this.foamLevel > 0) {
+                        const foamHeight = glassHeight * this.foamLevel;
+                        const fillHeight = glassHeight * this.fillLevel;
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                        ctx.beginPath();
+                        ctx.moveTo(glassX - glassWidth/2 + (20 * this.fillLevel), glassY + glassHeight/2 - fillHeight);
+                        ctx.lineTo(glassX - glassWidth/2 + (20 * (this.fillLevel + this.foamLevel)), glassY + glassHeight/2 - fillHeight - foamHeight);
+                        ctx.lineTo(glassX + glassWidth/2 - (20 * (this.fillLevel + this.foamLevel)), glassY + glassHeight/2 - fillHeight - foamHeight);
+                        ctx.lineTo(glassX + glassWidth/2 - (20 * this.fillLevel), glassY + glassHeight/2 - fillHeight);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                },
+                input: function() {
+                    if (this.pouring && !this.done) {
+                        this.pouring = false;
+                        this.done = true;
+                        
+                        const diff = Math.abs(this.fillLevel - this.targetLevel);
+                        if (diff <= this.tolerance && this.fillLevel + this.foamLevel <= 1.0) {
+                            return 'success';
+                        } else {
+                            return 'fail';
+                        }
+                    }
+                }
+            },
+            {
+                name: "THE WALK HOME",
+                instruction: "DODGE OBSTACLES!",
+                duration: 7000,
+                init: function() {
+                    this.playerX = canvas.width / 2;
+                    this.obstacles = [];
+                    this.distance = 0;
+                    this.targetDistance = 250;
+                    this.touching = false;
+                    this.speed = 180 * gameSpeed;
+                },
+                update: function(dt) {
+                    this.distance += dt * 40;
+                    
+                    if (Math.random() < 0.015 * gameSpeed) {
+                        this.obstacles.push({
+                            x: Math.random() * (canvas.width - 60) + 30,
+                            y: -30
+                        });
+                    }
+                    
+                    for (let obs of this.obstacles) {
+                        obs.y += this.speed * dt;
+                        const dist = Math.hypot(this.playerX - obs.x, canvas.height - 80 - obs.y);
+                        if (dist < 40) return 'fail';
+                    }
+                    
+                    this.obstacles = this.obstacles.filter(o => o.y < canvas.height);
+                    
+                    if (this.distance >= this.targetDistance) return 'success';
+                },
+                render: function() {
+                    // Road
+                    ctx.fillStyle = '#333';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Lane lines
+                    ctx.strokeStyle = '#ffeb3b';
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([20, 20]);
+                    ctx.beginPath();
+                    ctx.moveTo(canvas.width / 2, 0);
+                    ctx.lineTo(canvas.width / 2, canvas.height);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    
+                    // Obstacles
+                    ctx.fillStyle = '#e74141';
+                    for (let obs of this.obstacles) {
+                        ctx.fillRect(obs.x - 20, obs.y - 20, 40, 40);
+                    }
+                    
+                    // Player
+                    ctx.fillStyle = '#2abcec';
+                    ctx.beginPath();
+                    ctx.arc(this.playerX, canvas.height - 80, 25, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Progress
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(10, 10, (this.distance / this.targetDistance) * (canvas.width - 20), 10);
+                },
+                input: function(x) {
+                    if (x !== undefined) {
+                        this.playerX = x;
+                    }
+                }
+            },
+            {
+                name: "ORDER DRINKS",
+                instruction: "MEMORIZE THE ORDER!",
+                duration: 8000,
+                init: function() {
+                    const drinks = ['🍺', '🍻', '🍷', '🥃', '🍹'];
+                    this.sequence = [];
+                    const len = Math.min(3 + Math.floor(difficulty / 3), 5);
+                    for (let i = 0; i < len; i++) {
+                        this.sequence.push(drinks[Math.floor(Math.random() * drinks.length)]);
+                    }
+                    this.playerSequence = [];
+                    this.showing = true;
+                    this.showTimer = Math.max(2000 - (gameSpeed - 1) * 500, 1500);
+                    this.options = drinks;
+                    this.pauseTimer = true;
+                },
+                update: function(dt) {
+                    if (this.showing) {
+                        this.showTimer -= dt * 1000;
+                        if (this.showTimer <= 0) {
+                            this.showing = false;
+                            this.pauseTimer = false;
+                        }
+                        return null;
+                    }
+                    
+                    if (!this.showing && this.playerSequence.length === this.sequence.length) {
+                        let correct = true;
+                        for (let i = 0; i < this.sequence.length; i++) {
+                            if (this.sequence[i] !== this.playerSequence[i]) {
+                                correct = false;
+                                break;
+                            }
+                        }
+                        return correct ? 'success' : 'fail';
+                    }
+                },
+                render: function() {
+                    ctx.fillStyle = '#f4f4f4';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    if (this.showing) {
+                        ctx.fillStyle = 'black';
+                        ctx.font = 'bold 30px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('MEMORIZE THIS ORDER:', canvas.width / 2, 80);
+                        
+                        ctx.font = '60px Arial';
+                        let x = canvas.width / 2 - (this.sequence.length * 35);
+                        for (let drink of this.sequence) {
+                            ctx.fillText(drink, x, canvas.height / 2);
+                            x += 70;
+                        }
+                    } else {
+                        // Show options
+                        ctx.font = '50px Arial';
+                        ctx.textAlign = 'center';
+                        const spacing = canvas.width / (this.options.length + 1);
+                        for (let i = 0; i < this.options.length; i++) {
+                            ctx.fillText(this.options[i], spacing * (i + 1), canvas.height / 2 + 50);
+                        }
+                        
+                        // Show player sequence
+                        if (this.playerSequence.length > 0) {
+                            ctx.font = '40px Arial';
+                            let x = canvas.width / 2 - (this.playerSequence.length * 30);
+                            for (let drink of this.playerSequence) {
+                                ctx.fillText(drink, x, 100);
+                                x += 60;
+                            }
+                        }
+                        
+                        ctx.fillStyle = 'black';
+                        ctx.font = 'bold 20px Arial';
+                        ctx.fillText(`TAP THE DRINKS IN ORDER (${this.playerSequence.length}/${this.sequence.length})`, canvas.width / 2, 150);
+                    }
+                },
+                input: function(x, y) {
+                    if (!this.showing && x !== undefined && y !== undefined) {
+                        const spacing = canvas.width / (this.options.length + 1);
+                        for (let i = 0; i < this.options.length; i++) {
+                            const optX = spacing * (i + 1);
+                            if (Math.abs(x - optX) < 50 && Math.abs(y - canvas.height / 2 - 50) < 50) {
+                                this.playerSequence.push(this.options[i]);
+                                break;
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                name: "TIGERLAND DANCE",
+                instruction: "TAP THE BEAT!",
+                duration: 6000,
+                init: function() {
+                    this.beats = [];
+                    this.score = 0;
+                    this.targetScore = 8;
+                    this.beatTimer = 0;
+                    this.nextBeatDelay = this.getRandomDelay();
+                    this.speed = 250 * gameSpeed;
+                },
+                getRandomDelay: function() {
+                    // Variable spacing between beats
+                    const baseDelay = 0.6 / gameSpeed;
+                    const variation = 0.3;
+                    return baseDelay + (Math.random() * variation - variation / 2);
+                },
+                update: function(dt) {
+                    this.beatTimer += dt;
+                    if (this.beatTimer > this.nextBeatDelay) {
+                        this.beatTimer = 0;
+                        this.nextBeatDelay = this.getRandomDelay();
+                        this.beats.push({ y: 0, hit: false });
+                    }
+                    
+                    for (let beat of this.beats) {
+                        beat.y += this.speed * dt;
+                    }
+                    
+                    this.beats = this.beats.filter(b => b.y < canvas.height + 50);
+                    
+                    for (let beat of this.beats) {
+                        if (beat.y > canvas.height - 30 && !beat.hit) return 'fail';
+                    }
+                    
+                    if (this.score >= this.targetScore) return 'success';
+                },
+                render: function() {
+                    ctx.fillStyle = '#2abcec';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Target zone
+                    ctx.fillStyle = 'rgba(231, 65, 65, 0.5)';
+                    ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
+                    
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(0, canvas.height - 100, canvas.width, 100);
+                    
+                    // Beats
+                    ctx.fillStyle = 'white';
+                    for (let beat of this.beats) {
+                        if (!beat.hit) {
+                            ctx.beginPath();
+                            ctx.arc(canvas.width / 2, beat.y, 30, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    }
+                    
+                    // Score
+                    ctx.fillStyle = 'white';
+                    ctx.font = 'bold 40px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`${this.score}/${this.targetScore}`, canvas.width / 2, 60);
+                },
+                input: function() {
+                    for (let beat of this.beats) {
+                        if (!beat.hit && beat.y > canvas.height - 150 && beat.y < canvas.height - 30) {
+                            beat.hit = true;
+                            this.score++;
+                            break;
+                        }
+                    }
+                }
+            }
+        ];
+
+        function showSpeedUpScreen() {
+            const speedUpScreen = document.getElementById('speedUpScreen');
+            speedUpScreen.style.display = 'flex';
+            
+            // Play speed up sound
+            if (!isMuted && audioContext) {
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => playNote(440 + i * 100, 0.1, 'square'), i * 100);
+                }
+            }
+            
+            setTimeout(() => {
+                speedUpScreen.style.display = 'none';
+                if (gameState === 'playing') {
+                    startMinigame();
+                }
+            }, 1500);
+        }
+
+        function showResultScreen(success) {
+            const resultScreen = document.getElementById('resultScreen');
+            const resultText = document.getElementById('resultText');
+            const resultStats = document.getElementById('resultStats');
+            
+            if (success) {
+                playSuccessSound();
+            } else {
+                playFailSound();
+            }
+            
+            resultScreen.className = success ? 'success' : 'fail';
+            resultText.textContent = success ? '✓ SUCCESS!' : '✗ FAILED!';
+            
+            if (success) {
+                roundsCompleted++;
+                resultStats.innerHTML = `
+                    Score: ${score}<br>
+                    Rounds: ${roundsCompleted}<br>
+                    Lives: ${'❤️'.repeat(lives)}
+                `;
+            } else {
+                resultStats.innerHTML = `
+                    Score: ${score}<br>
+                    Lives Left: ${'❤️'.repeat(lives)}
+                `;
+            }
+            
+            resultScreen.style.display = 'flex';
+            
+            setTimeout(() => {
+                resultScreen.style.display = 'none';
+                if (gameState === 'playing') {
+                    // Check if it's time to speed up (every 5 rounds)
+                    if (success && roundsCompleted % 5 === 0 && roundsCompleted > 0) {
+                        gameSpeed += 0.15;
+                        showSpeedUpScreen();
+                    } else {
+                        startMinigame();
+                    }
+                }
+            }, 2000);
+        }
+
+        function startMinigame() {
+            currentMinigame = minigames[Math.floor(Math.random() * minigames.length)];
+            currentMinigame.init();
+            minigameTimer = currentMinigame.duration / gameSpeed;
+            
+            const titleEl = document.getElementById('minigameTitle');
+            const instrEl = document.getElementById('minigameInstruction');
+            
+            titleEl.textContent = currentMinigame.name;
+            instrEl.textContent = currentMinigame.instruction;
+            titleEl.style.display = 'block';
+            instrEl.style.display = 'block';
+            
+            setTimeout(() => {
+                titleEl.style.display = 'none';
+                instrEl.style.display = 'none';
+            }, 1200);
+        }
+
+        function gameLoop(timestamp) {
+            const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
+            lastTime = timestamp;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (gameState === 'playing') {
+                if (!currentMinigame) {
+                    startMinigame();
+                } else {
+                    const result = currentMinigame.update(dt);
+                    currentMinigame.render();
+                    
+                    if (!currentMinigame.pauseTimer) {
+                        minigameTimer -= dt * 1000;
+                    }
+                    
+                    if (result === 'success') {
+                        score += Math.floor(10 * difficulty);
+                        difficulty += 0.03;
+                        currentMinigame = null;
+                        showResultScreen(true);
+                    } else if (result === 'fail' || minigameTimer <= 0) {
+                        lives--;
+                        currentMinigame = null;
+                        if (lives <= 0) {
+                            gameOver();
+                        } else {
+                            showResultScreen(false);
+                        }
+                    }
+                }
+                
+                document.getElementById('score').textContent = score;
+                document.getElementById('lives').textContent = lives;
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function handleInput(x, y) {
+            if (gameState === 'playing' && currentMinigame) {
+                const result = currentMinigame.input(x, y);
+                if (result === 'success') {
+                    score += Math.floor(10 * difficulty);
+                    difficulty += 0.03;
+                    currentMinigame = null;
+                    showResultScreen(true);
+                } else if (result === 'fail') {
+                    lives--;
+                    currentMinigame = null;
+                    if (lives <= 0) {
+                        gameOver();
+                    } else {
+                        showResultScreen(false);
+                    }
+                }
+            }
+        }
+
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+            const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+            handleInput(x, y);
+        });
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = (touch.clientX - rect.left) * (canvas.width / rect.width);
+            const y = (touch.clientY - rect.top) * (canvas.height / rect.height);
+            handleInput(x, y);
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (gameState === 'playing' && currentMinigame && currentMinigame.name === 'THE WALK HOME') {
+                const rect = canvas.getBoundingClientRect();
+                const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+                currentMinigame.input(x);
+            }
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (gameState === 'playing' && currentMinigame && currentMinigame.name === 'THE WALK HOME') {
+                const rect = canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                const x = (touch.clientX - rect.left) * (canvas.width / rect.width);
+                currentMinigame.input(x);
+            }
+        });
+
+        function startGame() {
+            initAudio();
+            gameState = 'playing';
+            score = 0;
+            lives = 3;
+            difficulty = 1;
+            gameSpeed = 1;
+            roundsCompleted = 0;
+            currentMinigame = null;
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('hud').style.display = 'flex';
+            lastTime = performance.now();
+            gameStarted = true;
+            startMusic();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function gameOver() {
+            gameState = 'gameover';
+            stopMusic();
+            document.getElementById('hud').style.display = 'none';
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('gameOverScreen').style.display = 'flex';
+            loadLeaderboard();
+        }
+
+        async function submitScore() {
+            const name = document.getElementById('nameInput').value.trim();
+            if (!name) {
+                alert('Please enter your name!');
+                return;
+            }
+
+            try {
+                const timestamp = Date.now();
+                await window.storage.set(`tki_score_${timestamp}`, JSON.stringify({
+                    name: name,
+                    score: score,
+                    date: new Date().toLocaleDateString()
+                }), true);
+                
+                document.getElementById('nameInput').style.display = 'none';
+                document.querySelector('#gameOverScreen .btn:nth-of-type(1)').style.display = 'none';
+                loadLeaderboard(name);
+            } catch (error) {
+                console.error('Error saving score:', error);
+                alert('Error saving score. Please try again!');
+            }
+        }
+
+        async function loadLeaderboard(highlightName = null) {
+            try {
+                const result = await window.storage.list('tki_score_', true);
+                const scores = [];
+                
+                if (result && result.keys) {
+                    for (let key of result.keys) {
+                        try {
+                            const data = await window.storage.get(key, true);
+                            if (data && data.value) {
+                                scores.push(JSON.parse(data.value));
+                            }
+                        } catch (e) {
+                            console.error('Error loading score:', e);
+                        }
+                    }
+                }
+                
+                scores.sort((a, b) => b.score - a.score);
+                const top10 = scores.slice(0, 10);
+                
+                const leaderboardEl = document.getElementById('leaderboard');
+                leaderboardEl.innerHTML = '<h3 style="text-align: center; margin-bottom: 10px;">🏆 TOP 10 LEADERBOARD 🏆</h3>';
+                
+                if (top10.length === 0) {
+                    leaderboardEl.innerHTML += '<p style="text-align: center;">No scores yet. Be the first!</p>';
+                } else {
+                    top10.forEach((entry, index) => {
+                        const div = document.createElement('div');
+                        div.className = 'leaderboardEntry';
+                        if (highlightName && entry.name === highlightName && entry.score === score) {
+                            div.classList.add('currentPlayer');
+                        }
+                        div.innerHTML = `
+                            <span>${index + 1}. ${entry.name}</span>
+                            <span>${entry.score} pts</span>
+                        `;
+                        leaderboardEl.appendChild(div);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading leaderboard:', error);
+                document.getElementById('leaderboard').innerHTML = '<p style="text-align: center;">Error loading leaderboard</p>';
+            }
+        }
+
+        async function showLeaderboard() {
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameOverScreen').style.display = 'flex';
+            document.getElementById('finalScore').parentElement.style.display = 'none';
+            document.getElementById('nameInput').style.display = 'none';
+            document.querySelector('#gameOverScreen .btn:nth-of-type(1)').style.display = 'none';
+            await loadLeaderboard();
+        }
+
+        if (!gameStarted) {
+            requestAnimationFrame(gameLoop);
+        }
+    </script>
+</body>
+</html>
