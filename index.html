@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TKI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            /* Light gray background */
+        }
+
+        header {
+            background-color: #e74141;
+            /* Pastel red */
+            padding: 20px;
+            text-align: center;
+            color: #ffffff;
+            /* White text */
+        }
+
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        nav ul li {
+            display: inline;
+            margin-right: 20px;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: #ffffff;
+            /* White text */
+        }
+
+        .section {
+            padding: 50px 0;
+        }
+
+        .container {
+            width: 80%;
+            margin: auto;
+            background-color: #ffffff;
+            /* White background */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            /* Soft shadow */
+        }
+
+        footer {
+            background-color: #2abcec;
+            /* Pastel blue */
+            text-align: center;
+            padding: 20px;
+            bottom: 0;
+        }
+
+        .social-links {
+            margin-top: 15px;
+        }
+
+        .social-links a {
+            display: inline-block;
+            margin: 0 15px;
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 18px;
+            padding: 10px 20px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .social-links a:hover {
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .responsive-image {
+            width: 100%;
+            /* Set image width to 100% of its container */
+            height: auto;
+            /* Maintain aspect ratio */
+            display: block;
+            /* Ensure proper display */
+            margin: 0 auto;
+            /* Center image horizontally */
+        }
+
+        /* Fancy countdown styles */
+        #countdown {
+            font-family: 'Arial', sans-serif;
+            font-size: 24px;
+            color: #ffffff;
+            background-color: #e74141;
+            /* pastel red */
+            padding: 10px 20px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            /* Flexible columns */
+            grid-auto-rows: auto;
+            /* Allow rows to adjust based on content */
+            grid-gap: 20px;
+            /* Spacing between grid items */
+            justify-items: center;
+            /* Center items horizontally within the grid */
+        }
+
+        .gallery img {
+            max-width: 100%;
+            /* Ensure images don't exceed their container */
+            max-height: 200px;
+            /* Limit the maximum height of the images */
+            display: block;
+            /* Prevents space below inline-block elements */
+            object-fit: cover;
+            /* Maintain aspect ratio and cover the entire grid cell */
+        }
+
+        /* Event mode styling */
+        .event-active {
+            background-color: #2abcec !important;
+            /* pastel blue */
+            color: #ffffff;
+            animation: pulse 1.2s infinite;
+            font-weight: bold;
+        }
+
+        /* Flash frat colors during event */
+        .flash {
+            animation: fratFlash 0.8s infinite;
+        }
+
+        @keyframes fratFlash {
+            0% {
+                background-color: #e74141;
+            }
+
+            /* red */
+            50% {
+                background-color: #2abcec;
+            }
+
+            /* blue */
+            100% {
+                background-color: #e74141;
+            }
+        }
+
+        /* Bottoms up animation */
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+            }
+
+            50% {
+                transform: scale(1.08);
+                box-shadow: 0 0 25px rgba(255, 255, 255, 0.9);
+            }
+
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+            }
+        }
+
+        /* Confetti */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            top: -10px;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+    <script>
+        let confettiActive = false;
+        let confettiInterval = null;
+
+        function createConfetti() {
+            const confetti = document.createElement('div');
+            confetti.classList.add('confetti');
+
+            // Random colors (red and blue for frat colors)
+            const colors = ['#e74141', '#2abcec', '#ffffff', '#ffd700'];
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+
+            // Random horizontal position
+            confetti.style.left = Math.random() * 100 + 'vw';
+
+            // Random animation duration
+            const duration = Math.random() * 3 + 2; // 2-5 seconds
+            confetti.style.animation = `confetti-fall ${duration}s linear forwards`;
+
+            document.body.appendChild(confetti);
+
+            // Remove confetti after animation
+            setTimeout(() => {
+                confetti.remove();
+            }, duration * 1000);
+        }
+
+        function startConfetti() {
+            if (confettiActive) return;
+            confettiActive = true;
+
+            // Create confetti continuously
+            confettiInterval = setInterval(() => {
+                createConfetti();
+            }, 150); // Create new confetti every 150ms
+
+            // Also create initial burst
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => createConfetti(), i * 30);
+            }
+        }
+
+        function stopConfetti() {
+            confettiActive = false;
+            if (confettiInterval) {
+                clearInterval(confettiInterval);
+                confettiInterval = null;
+            }
+            // Remove all existing confetti
+            document.querySelectorAll('.confetti').forEach(c => c.remove());
+        }
+
+        function updateCountdown() {
+            const now = new Date();
+            const day = now.getDay(); // 0=Sun ... 5=Fri
+            const hours = now.getHours();
+
+            const countdownEl = document.getElementById("countdown");
+            countdownEl.classList.remove("event-active");
+            countdownEl.classList.remove("flash");
+
+            // === FRIDAY 8PM-10PM: COUNTDOWN TO TIGERLAND ===
+            if (day === 5 && hours >= 20 && hours < 22) {
+                countdownEl.classList.add("flash");
+
+                // Start confetti if not already active
+                if (!confettiActive) {
+                    startConfetti();
+                }
+
+                const tigerland = new Date(now);
+                tigerland.setHours(22, 0, 0, 0);
+
+                const diff = tigerland - now;
+                const totalSeconds = Math.floor(diff / 1000);
+                const m = Math.floor(totalSeconds / 60);
+                const s = totalSeconds % 60;
+
+                countdownEl.innerHTML =
+                    "🍻 BOTTOMS UP 🍻<br>" +
+                    `Tigerland in ${m}m ${s}s`;
+                return;
+            }
+
+            // === FRIDAY 10PM-11PM: TO THE BAR ===
+            if (day === 5 && hours >= 22 && hours < 23) {
+                countdownEl.classList.add("event-active");
+                countdownEl.innerHTML = "🍺 TO THE BAR 🍺";
+
+                // Stop confetti during bar time
+                if (confettiActive) {
+                    stopConfetti();
+                }
+                return;
+            }
+
+            // Stop confetti if event is over
+            if (confettiActive) {
+                stopConfetti();
+            }
+
+            // === COUNTDOWN TO NEXT FRIDAY 8 PM ===
+            let target = new Date(now);
+            let daysUntilFriday = (5 - day + 7) % 7;
+
+            if (day === 5 && hours >= 23) {
+                daysUntilFriday = 7;
+            }
+
+            target.setDate(now.getDate() + daysUntilFriday);
+            target.setHours(20, 0, 0, 0);
+
+            const diff = target - now;
+            const totalSeconds = Math.floor(diff / 1000);
+            const s = totalSeconds % 60;
+            const totalMinutes = Math.floor(totalSeconds / 60);
+            const m = totalMinutes % 60;
+            const totalHours = Math.floor(totalMinutes / 60);
+            const h = totalHours % 24;
+            const d = Math.floor(totalHours / 24);
+
+            countdownEl.innerHTML =
+                "Time until Hawaiian Friday:<br>" +
+                `${d}d ${h}h ${m}m ${s}s`;
+        }
+
+        setInterval(updateCountdown, 1000);
+        window.onload = updateCountdown;
+    </script>
+
+</head>
+
+<body>
+    <header>
+        <h1>Welcome to Tau Kappa Iota</h1>
+        <nav>
+            <ul>
+                <li><a href="#about">About Us</a></li>
+                <li><a href="#events">Events</a></li>
+                <li><a href="#contact">Contact Us</a></li>
+                <li><a href="#gallery">Gallery</a></li>
+            </ul>
+        </nav>
+    </header>
+    <br><br>
+    <center>
+        <div id="countdown"></div>
+    </center>
+    <section id="about" class="section">
+        <div class="container">
+            <center><img src="https://crusewycoff1.github.io/TKI/IMG_0883.JPG" alt="Hawaiian Friday" class="responsive-image"></center>
+            <h2>About Tau Kappa Iota</h2>
+            <p>Welcome to Tau Kappa Iota, a prestigious fraternity dedicated to fostering brotherhood, academic
+                excellence, and the preservation of cherished traditions. Founded on February 29th, 2024, by visionary
+                leaders M. Woodson Q. Hinrichs and C. Wycoff, our fraternity stands as a testament to the enduring
+                spirit of camaraderie and the pursuit of shared ideals.</p>
+            <p>Our storied history traces its origins to a humble yet momentous gathering, where our illustrious
+                founders, inspired by a fervent desire for fellowship and the spirit of adventure, conceived the bold
+                vision of creating a fraternity unlike any other. From this visionary notion emerged Tau Kappa Iota, a
+                bastion of tradition and a sanctuary where bonds of brotherhood are forged amidst the vibrant tapestry
+                of life.</p>
+            <p>Guided by the sacred principles enshrined in our constitution, we celebrate the rich tapestry of
+                diversity that defines our brotherhood. Through a myriad of academic pursuits, philanthropic endeavors,
+                and social engagements, we strive to cultivate an environment where each member is empowered to realize
+                their fullest potential and contribute meaningfully to the tapestry of our fraternity.</p>
+            <p>As proud stewards of our cherished legacy, we remain steadfast in our commitment to upholding the values
+                of integrity, respect, and inclusivity that have guided Tau Kappa Iota since its inception. Together, we
+                embark on a journey fueled by the boundless spirit of brotherhood, united in our quest to leave an
+                indelible mark upon the annals of time.</p>
+        </div>
+    </section>
+
+    <section id="events" class="section">
+        <div class="container">
+            <h2>Events</h2>
+            <ul>
+                <li>Join us every Friday for Hawaiian Fridays! The event starts at 8:00pm to 10:00pm and then we move to
+                    tigerland from 10:00 to 2:00</li>
+                <li>On 4/13/24, We are hosting the first annual TKI Grog and Offense dinner</li>
+            </ul><!-- Add events list here -->
+        </div>
+    </section>
+
+    <section id="contact" class="section">
+        <div class="container">
+            <h2>Contact Us</h2>
+            <p>If you have any questions or inquiries, feel free to reach out to us:</p>
+            <ul>
+                <li>Email: TauKappaIota@gmail.com</li>
+                <li>Phone: (985) 373-7393</li>
+            </ul>
+        </div>
+    </section>
+    <section id="gallery" class="section">
+
+        <div class="container">
+            <h2>Image Gallery</h2>
+            <div class="gallery">
+                <img src="https://crusewycoff1.github.io/TKI/IMG_0901.JPG" alt="Image 1">
+                <img src="https://crusewycoff1.github.io/TKI/IMG_1245.JPG" alt="Image 2">
+                <img src="https://crusewycoff1.github.io/TKI/IMG_1246.JPG" alt="Image 3">
+                <img src="https://crusewycoff1.github.io/TKI/IMG_1248.JPG" alt="Image 4">
+                <img src="https://crusewycoff1.github.io/TKI/IMG_1249.jpg" alt="Image 4">
+                <img src="https://crusewycoff1.github.io/TKI/IMG_1251.JPG" alt="Image 4">
+                <img src="https://crusewycoff1.github.io/TKI/IMG_1257.JPG" alt="Image 4">
+		<img src="https://crusewycoff1.github.io/TKI/IMG_0164.JPEG" alt="Image 1">
+		<img src="https://crusewycoff1.github.io/TKI/IMG_0443.JPEG" alt="Image 3">
+		<img src="https://crusewycoff1.github.io/TKI/IMG_0670.JPEG" alt="Image 4">
+		<img src="https://crusewycoff1.github.io/TKI/IMG_2160.JPEG" alt="Image 5">
+		<img src="https://crusewycoff1.github.io/TKI/IMG_2203.JPEG" alt="Image 6">
+		<img src="https://crusewycoff1.github.io/TKI/IMG_2221.JPEG" alt="Image 7">
+		<img src="https://crusewycoff1.github.io/TKI/IMG_2308.JPEG" alt="Image 8">
+		<img src="https://crusewycoff1.github.io/TKI/IMG_2348.JPEG" alt="Image 9">
+		<img src="https://crusewycoff1.github.io/TKI/IMG_2379.JPEG" alt="Image 10">
+		<img src="https://crusewycoff1.github.io/TKI/IMG_2419.JPEG" alt="Image 11">
+		<img src="https://crusewycoff1.github.io/TKI/IMG_2489.JPEG" alt="Image 12">
+		<img src="https://crusewycoff1.github.io/TKI/IMG_2524.JPEG" alt="Image 13">
+		<img src="https://crusewycoff1.github.io/TKI/IMG_2535.JPEG" alt="Image 14">
+		<img src="https://crusewycoff1.github.io/TKI/IMG_2553.JPEG" alt="Image 15">
+		<img src="https://crusewycoff1.github.io/TKI/IMG_2554.JPEG" alt="Image 16">
+		<img src="https://crusewycoff1.github.io/TKI/IMG_2614.JPEG" alt="Image 17">
+		<img src="https://crusewycoff1.github.io/TKI/IMG_2670.JPEG" alt="Image 18">
+		<img src="https://crusewycoff1.github.io/TKI/IMG_2818.JPEG" alt="Image 19">
+		<img src="https://crusewycoff1.github.io/TKI/IMG_4609.JPEG" alt="Image 20">
+                <!-- Add more images as needed -->
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 Tau Kappa Iota. All rights reserved.</p>
+        <div class="social-links">
+            <a href="https://www.instagram.com/taukappaiota/" target="_blank">📷 Instagram</a>
+            <a href="https://x.com/TauKappaIota" target="_blank">𝕏 Twitter</a>
+        </div>
+    </footer>
+</body>
+
+</html>
